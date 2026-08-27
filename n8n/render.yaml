@@ -1,17 +1,16 @@
 services:
   - type: web
     name: n8n-app
-    env: docker
+    runtime: image
     plan: starter
     image:
-      url: docker.n8n.io/n8nio/n8n:latest
+      url: docker.io/n8nio/n8n:latest
     healthCheckPath: /healthz
     disk:
       name: n8n-data
       mountPath: /home/node/.n8n
       sizeGB: 1
     envVars:
-      # ---- Server ----
       - key: PORT
         value: "5678"
       - key: N8N_PORT
@@ -32,20 +31,8 @@ services:
         value: UTC
       - key: TZ
         value: UTC
-
-      # ---- Encryption key: pins credential encryption across every redeploy ----
-      # Without this, n8n generates a random key each time /home/node/.n8n is
-      # missing, and every previously-stored credential becomes undecryptable.
-      # Value to paste in the Render dashboard (do not commit the real value):
-      #   8e2113f0651a7988b290d0dd316882f4a33bc12057e48d7085b7f6889e4aaca2
       - key: N8N_ENCRYPTION_KEY
-        sync: false
-
-      # ---- Database: Supabase Postgres via the Supavisor SESSION pooler ----
-      # NOT db.<ref>.supabase.co — that direct host is IPv6-only on the free
-      # tier and Render's egress is IPv4-only, so it will just time out.
-      # Session mode (5432), not transaction mode (6543): n8n holds a
-      # persistent connection pool, which session mode is meant for.
+        generateValue: true
       - key: DB_TYPE
         value: postgresdb
       - key: DB_POSTGRESDB_HOST
